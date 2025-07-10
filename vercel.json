@@ -1,10 +1,4 @@
 {
   "version": 2,
-  "buildCommand": "cd marketplace && npm install && npm run build",
-  "outputDirectory": "marketplace/.next",
-  "framework": "nextjs",
-  "installCommand": "cd marketplace && npm install",
-  "devCommand": "cd marketplace && npm run dev",
-  "cleanUrls": true,
-  "trailingSlash": false
+  "framework": "nextjs"
 }
