@@ -55,7 +55,26 @@ export const PERSONA_PERMISSIONS: Record<PersonaType, ResourceAction[]> = {
 
   instructor: [
     // Include all learner permissions
-    ...PERSONA_PERMISSIONS.learner,
+    'catalog:read',
+    'course:read',
+    'category:read',
+    'enrollment:create:own',
+    'enrollment:read:own',
+    'enrollment:cancel:own',
+    'progress:read:own',
+    'progress:update:own',
+    'certificate:read:own',
+    'certificate:download:own',
+    'profile:read:own',
+    'profile:update:own',
+    'review:create',
+    'review:read',
+    'review:update:own',
+    'review:delete:own',
+    'discussion:create',
+    'discussion:read',
+    'discussion:update:own',
+    'discussion:delete:own',
     
     // Course Management
     'course:create',
@@ -95,7 +114,49 @@ export const PERSONA_PERMISSIONS: Record<PersonaType, ResourceAction[]> = {
 
   admin: [
     // Include all instructor permissions
-    ...PERSONA_PERMISSIONS.instructor,
+    'catalog:read',
+    'course:read',
+    'category:read',
+    'enrollment:create:own',
+    'enrollment:read:own',
+    'enrollment:cancel:own',
+    'progress:read:own',
+    'progress:update:own',
+    'certificate:read:own',
+    'certificate:download:own',
+    'profile:read:own',
+    'profile:update:own',
+    'review:create',
+    'review:read',
+    'review:update:own',
+    'review:delete:own',
+    'discussion:create',
+    'discussion:read',
+    'discussion:update:own',
+    'discussion:delete:own',
+    'course:create',
+    'course:update:own',
+    'course:delete:own',
+    'course:publish:own',
+    'course:archive:own',
+    'module:create:own',
+    'module:read:own',
+    'module:update:own',
+    'module:delete:own',
+    'lesson:create:own',
+    'lesson:read:own',
+    'lesson:update:own',
+    'lesson:delete:own',
+    'content:upload:own',
+    'content:read:own',
+    'content:delete:own',
+    'enrollment:read:own_courses',
+    'progress:read:own_courses',
+    'analytics:read:own',
+    'revenue:read:own',
+    'announcement:create:own_courses',
+    'announcement:update:own',
+    'announcement:delete:own',
     
     // User Management
     'user:read:tenant',
@@ -262,16 +323,18 @@ export class PermissionChecker {
 
 // Express middleware factories
 export function requirePermission(permission: ResourceAction) {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+      res.status(401).json({ error: 'Authentication required' });
+      return;
     }
 
     if (!PermissionChecker.hasPermission(req.user, permission)) {
-      return res.status(403).json({ 
+      res.status(403).json({ 
         error: 'Forbidden',
         message: `Missing permission: ${permission}`
       });
+      return;
     }
 
     next();
@@ -279,16 +342,18 @@ export function requirePermission(permission: ResourceAction) {
 }
 
 export function requireAnyPermission(...permissions: ResourceAction[]) {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+      res.status(401).json({ error: 'Authentication required' });
+      return;
     }
 
     if (!PermissionChecker.hasAnyPermission(req.user, permissions)) {
-      return res.status(403).json({ 
+      res.status(403).json({ 
         error: 'Forbidden',
         message: `Missing any of permissions: ${permissions.join(', ')}`
       });
+      return;
     }
 
     next();
@@ -296,16 +361,18 @@ export function requireAnyPermission(...permissions: ResourceAction[]) {
 }
 
 export function requireAllPermissions(...permissions: ResourceAction[]) {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+      res.status(401).json({ error: 'Authentication required' });
+      return;
     }
 
     if (!PermissionChecker.hasAllPermissions(req.user, permissions)) {
-      return res.status(403).json({ 
+      res.status(403).json({ 
         error: 'Forbidden',
         message: `Missing required permissions`
       });
+      return;
     }
 
     next();
@@ -313,16 +380,18 @@ export function requireAllPermissions(...permissions: ResourceAction[]) {
 }
 
 export function requirePersona(...personas: PersonaType[]) {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+      res.status(401).json({ error: 'Authentication required' });
+      return;
     }
 
     if (!personas.includes(req.user.persona)) {
-      return res.status(403).json({ 
+      res.status(403).json({ 
         error: 'Forbidden',
         message: `Required persona: ${personas.join(' or ')}`
       });
+      return;
     }
 
     next();
@@ -334,19 +403,21 @@ export function requireOwnership(
   permission: ResourceAction,
   getOwnerId: (req: AuthRequest) => string | Promise<string>
 ) {
-  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+  return async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+      res.status(401).json({ error: 'Authentication required' });
+      return;
     }
 
     try {
       const ownerId = await getOwnerId(req);
       
       if (!PermissionChecker.checkOwnership(req.user, permission, ownerId)) {
-        return res.status(403).json({ 
+        res.status(403).json({ 
           error: 'Forbidden',
           message: 'Insufficient permissions for this resource'
         });
+        return;
       }
 
       next();

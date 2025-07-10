@@ -11,6 +11,9 @@ export interface Tenant {
 export interface TenantService {
   findById(id: string): Promise<Tenant | null>;
   findByDomain(domain: string): Promise<Tenant | null>;
+  findBySubdomain(subdomain: string): Promise<Tenant | null>;
+  hasFeature(tenantId: string, feature: string): Promise<boolean>;
+  getLimit(tenantId: string, limitType: string): Promise<number>;
   create(tenant: Omit<Tenant, 'id' | 'createdAt' | 'updatedAt'>): Promise<Tenant>;
   update(id: string, updates: Partial<Tenant>): Promise<Tenant>;
   delete(id: string): Promise<void>;

@@ -221,7 +221,7 @@ export class ProgressService {
     tenantId: string,
     status?: 'active' | 'completed' | 'expired'
   ): Promise<Enrollment[]> {
-    return this.enrollmentRepository.findByStudent(studentId, tenantId, status);
+    return this.enrollmentRepository.findByStudent(studentId, tenantId);
   }
 
   async getCourseEnrollments(
@@ -245,7 +245,7 @@ export class ProgressService {
       }
     }
 
-    return this.enrollmentRepository.findByCourse(courseId, tenantId);
+    return this.enrollmentRepository.findByCourseId(courseId, tenantId);
   }
 
   private async updateModuleProgress(
@@ -331,7 +331,7 @@ export class ProgressService {
     enrollmentId: string,
     context: AccessContext
   ): Promise<Enrollment> {
-    const enrollment = await this.enrollmentRepository.findById(enrollmentId, context.tenantId);
+    const enrollment = await this.enrollmentRepository.findById(enrollmentId);
 
     if (!enrollment) {
       throw new Error('Enrollment not found');

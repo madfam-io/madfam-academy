@@ -41,7 +41,11 @@ export class TenantMiddleware {
         }
 
         // Attach tenant to request
-        req.tenant = tenant;
+        req.tenant = {
+          id: tenant.id,
+          subdomain: tenant.domain,
+          settings: tenant.settings
+        };
         req.tenantId = tenant.id;
 
         // Set tenant context for database queries
@@ -76,7 +80,11 @@ export class TenantMiddleware {
         }
 
         // Attach tenant to request
-        req.tenant = tenant;
+        req.tenant = {
+          id: tenant.id,
+          subdomain: tenant.domain,
+          settings: tenant.settings
+        };
         req.tenantId = tenant.id;
 
         // Set tenant context for database queries
@@ -108,7 +116,11 @@ export class TenantMiddleware {
         }
 
         // Attach tenant to request
-        req.tenant = tenant;
+        req.tenant = {
+          id: tenant.id,
+          subdomain: tenant.domain,
+          settings: tenant.settings
+        };
         req.tenantId = tenant.id;
 
         // Set tenant context for database queries

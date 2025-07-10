@@ -9,7 +9,7 @@ export interface CourseRepository {
   save(course: Course): Promise<void>;
   delete(id: CourseId, tenantId: string): Promise<void>;
   search(criteria: CourseSearchCriteria, tenantId: string): Promise<CourseSearchResult>;
-  incrementEnrollmentCount(courseId: CourseId): Promise<void>;
+  incrementEnrollmentCount(courseId: string, tenantId: string): Promise<void>;
 }
 
 export interface CourseSearchCriteria {
@@ -36,6 +36,12 @@ export interface CourseSearchResult {
 
 export class KnexCourseRepository implements CourseRepository {
   constructor(private readonly knex: Knex) {}
+
+  async incrementEnrollmentCount(courseId: string, tenantId: string): Promise<void> {
+    await this.knex('courses')
+      .where({ id: courseId, tenant_id: tenantId })
+      .increment('enrollment_count', 1);
+  }
 
   async findById(id: CourseId, tenantId: string): Promise<Course | null> {
     const courseData = await this.knex('courses')

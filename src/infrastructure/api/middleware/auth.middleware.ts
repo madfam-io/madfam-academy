@@ -18,6 +18,11 @@ export function authenticate(req: AuthenticatedRequest, res: Response, next: Nex
   next();
 }
 
+export function authenticateUser(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+  // Alias for authenticate to match route imports
+  authenticate(req, res, next);
+}
+
 export function authorize(roles: string[]) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
