@@ -1,15 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "dist/index.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/dist/index.js"
-    }
-  ]
+  "buildCommand": "cd marketplace && npm install && npm run build",
+  "outputDirectory": "marketplace/.next",
+  "framework": "nextjs",
+  "installCommand": "cd marketplace && npm install",
+  "devCommand": "cd marketplace && npm run dev",
+  "cleanUrls": true,
+  "trailingSlash": false
 }
