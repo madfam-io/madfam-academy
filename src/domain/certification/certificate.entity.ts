@@ -1,5 +1,5 @@
 import { Entity, ValueObject, AggregateRoot } from '@/shared/domain';
-import { CertificateIssuedEvent } from './certificate.events';
+import { CertificateGeneratedEvent, CertificateValidatedEvent, CertificateRevokedEvent } from './certificate.events';
 
 // Value Objects
 export class CertificateId extends ValueObject<string> {

@@ -1,8 +1,8 @@
-import { IEnrollmentRepository } from '@/domain/progress/enrollment.repository';
+import { EnrollmentRepository } from '@/domain/progress/enrollment.repository';
 import { Enrollment, LessonProgressData } from '@/domain/progress/progress.entity';
-import { ICourseRepository } from '@/domain/course/course.repository';
+import { CourseRepository } from '@/domain/course/course.repository';
 import { CertificateService } from './certificate.service';
-import { IEventBus } from '@/shared/domain/event-bus';
+import { EventBus } from '@/shared/domain/event-bus';
 import { PersonaType } from '@/infrastructure/auth/persona-permissions';
 
 export interface EnrollInCourseDto {

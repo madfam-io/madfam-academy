@@ -2,7 +2,7 @@ import { Knex } from 'knex';
 import { Course, CourseId, Price, CourseMetadata } from './course.entity';
 import { Module, Lesson } from './course.entity';
 
-export interface ICourseRepository {
+export interface CourseRepository {
   findById(id: CourseId, tenantId: string): Promise<Course | null>;
   findBySlug(slug: string, tenantId: string): Promise<Course | null>;
   findByInstructor(instructorId: string, tenantId: string): Promise<Course[]>;
@@ -33,7 +33,7 @@ export interface CourseSearchResult {
   totalPages: number;
 }
 
-export class CourseRepository implements ICourseRepository {
+export class KnexCourseRepository implements CourseRepository {
   constructor(private readonly knex: Knex) {}
 
   async findById(id: CourseId, tenantId: string): Promise<Course | null> {

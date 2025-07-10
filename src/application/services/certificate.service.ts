@@ -1,8 +1,8 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { ICertificateRepository } from '@/domain/certification/certificate.repository';
+import { CertificateRepository } from '@/domain/certification/certificate.repository';
 import { Certificate, CertificateMetadata, CertificateTemplate } from '@/domain/certification/certificate.entity';
-import { IStorageService } from '@/infrastructure/storage/storage.service';
-import { IEventBus } from '@/shared/domain/event-bus';
+import { StorageService } from '@/infrastructure/storage/storage.service';
+import { EventBus } from '@/shared/domain/event-bus';
 
 export interface IssueCertificateDto {
   tenantId: string;
@@ -35,10 +35,10 @@ export interface CertificateVerificationResult {
 
 export class CertificateService {
   constructor(
-    private readonly certificateRepository: ICertificateRepository,
-    private readonly templateRepository: ICertificateTemplateRepository,
-    private readonly storageService: IStorageService,
-    private readonly eventBus: IEventBus
+    private readonly certificateRepository: CertificateRepository,
+    private readonly templateRepository: CertificateRepository,
+    private readonly storageService: StorageService,
+    private readonly eventBus: EventBus
   ) {}
 
   async issueCertificate(dto: IssueCertificateDto): Promise<Certificate> {
