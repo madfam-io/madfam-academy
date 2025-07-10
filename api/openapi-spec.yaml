@@ -1,0 +1,1109 @@
+openapi: 3.0.3
+info:
+  title: Educational Marketplace API
+  description: Multi-tenant educational platform API supporting course creation, enrollment, and learning management
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api@edmarketplace.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: https://api.edmarketplace.com/v1
+    description: Production server
+  - url: https://{tenant}.edmarketplace.com/api/v1
+    description: Tenant-specific endpoint
+    variables:
+      tenant:
+        default: demo
+        description: Tenant subdomain
+
+tags:
+  - name: Authentication
+    description: User authentication and session management
+  - name: Users
+    description: User profile and account management
+  - name: Courses
+    description: Course catalog and management
+  - name: Enrollments
+    description: Course enrollment and progress tracking
+  - name: Payments
+    description: Payment processing and billing
+  - name: Content
+    description: Media and content delivery
+  - name: Analytics
+    description: Analytics and reporting
+
+security:
+  - bearerAuth: []
+  - apiKey: []
+
+paths:
+  # Authentication Endpoints
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register new user
+      operationId: registerUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login user
+      operationId: loginUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      summary: Refresh access token
+      operationId: refreshToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  # User Management
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Get current user profile
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    
+    patch:
+      tags: [Users]
+      summary: Update user profile
+      operationId: updateUserProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  # Course Management
+  /courses:
+    get:
+      tags: [Courses]
+      summary: List courses
+      operationId: listCourses
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: category
+          in: query
+          schema:
+            type: string
+          description: Filter by category ID
+        - name: instructor
+          in: query
+          schema:
+            type: string
+          description: Filter by instructor ID
+        - name: level
+          in: query
+          schema:
+            type: string
+            enum: [beginner, intermediate, advanced]
+        - name: price_min
+          in: query
+          schema:
+            type: number
+        - name: price_max
+          in: query
+          schema:
+            type: number
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Full-text search query
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [created_at, price, rating, enrollment_count]
+          description: Sort field
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+          default: desc
+      responses:
+        '200':
+          description: Course list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseList'
+    
+    post:
+      tags: [Courses]
+      summary: Create new course
+      operationId: createCourse
+      security:
+        - bearerAuth: [instructor]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseCreate'
+      responses:
+        '201':
+          description: Course created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /courses/{courseId}:
+    get:
+      tags: [Courses]
+      summary: Get course details
+      operationId: getCourse
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      responses:
+        '200':
+          description: Course details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    put:
+      tags: [Courses]
+      summary: Update course
+      operationId: updateCourse
+      security:
+        - bearerAuth: [instructor]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseUpdate'
+      responses:
+        '200':
+          description: Course updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    delete:
+      tags: [Courses]
+      summary: Delete course
+      operationId: deleteCourse
+      security:
+        - bearerAuth: [instructor]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      responses:
+        '204':
+          description: Course deleted
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /courses/{courseId}/modules:
+    get:
+      tags: [Courses]
+      summary: List course modules
+      operationId: listCourseModules
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      responses:
+        '200':
+          description: Module list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Module'
+    
+    post:
+      tags: [Courses]
+      summary: Add module to course
+      operationId: addCourseModule
+      security:
+        - bearerAuth: [instructor]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModuleCreate'
+      responses:
+        '201':
+          description: Module created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Module'
+
+  # Enrollment Management
+  /enrollments:
+    get:
+      tags: [Enrollments]
+      summary: List user enrollments
+      operationId: listEnrollments
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, completed, expired]
+      responses:
+        '200':
+          description: Enrollment list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Enrollment'
+    
+    post:
+      tags: [Enrollments]
+      summary: Enroll in course
+      operationId: enrollInCourse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnrollmentCreate'
+      responses:
+        '201':
+          description: Enrollment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enrollment'
+        '402':
+          description: Payment required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentIntent'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /enrollments/{enrollmentId}/progress:
+    get:
+      tags: [Enrollments]
+      summary: Get learning progress
+      operationId: getProgress
+      parameters:
+        - $ref: '#/components/parameters/EnrollmentId'
+      responses:
+        '200':
+          description: Progress details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Progress'
+    
+    patch:
+      tags: [Enrollments]
+      summary: Update progress
+      operationId: updateProgress
+      parameters:
+        - $ref: '#/components/parameters/EnrollmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProgressUpdate'
+      responses:
+        '200':
+          description: Progress updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Progress'
+
+  # Payment Endpoints
+  /payments/checkout:
+    post:
+      tags: [Payments]
+      summary: Create checkout session
+      operationId: createCheckout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+      responses:
+        '200':
+          description: Checkout session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutSession'
+
+  /payments/webhook:
+    post:
+      tags: [Payments]
+      summary: Payment webhook endpoint
+      operationId: paymentWebhook
+      security: []
+      parameters:
+        - name: stripe-signature
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook processed
+
+  # Content Delivery
+  /content/upload:
+    post:
+      tags: [Content]
+      summary: Get upload URL
+      operationId: getUploadUrl
+      security:
+        - bearerAuth: [instructor]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadRequest'
+      responses:
+        '200':
+          description: Upload URL generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadResponse'
+
+  /content/{contentId}/stream:
+    get:
+      tags: [Content]
+      summary: Get streaming URL
+      operationId: getStreamUrl
+      parameters:
+        - name: contentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Streaming URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StreamingUrl'
+
+  # Analytics
+  /analytics/instructor:
+    get:
+      tags: [Analytics]
+      summary: Get instructor analytics
+      operationId: getInstructorAnalytics
+      security:
+        - bearerAuth: [instructor]
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month, year]
+          default: month
+        - name: courseId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstructorAnalytics'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  parameters:
+    CourseId:
+      name: courseId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    
+    EnrollmentId:
+      name: enrollmentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  schemas:
+    # Authentication
+    UserRegistration:
+      type: object
+      required: [email, password, name, persona]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        name:
+          type: string
+        persona:
+          type: string
+          enum: [learner, instructor]
+        tenantId:
+          type: string
+          format: uuid
+    
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        tenantId:
+          type: string
+          format: uuid
+    
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+        user:
+          $ref: '#/components/schemas/User'
+    
+    # User
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        persona:
+          type: string
+          enum: [learner, instructor, admin]
+        avatar:
+          type: string
+          format: uri
+        bio:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    
+    UserUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        bio:
+          type: string
+        avatar:
+          type: string
+          format: uri
+        preferences:
+          type: object
+    
+    # Course
+    Course:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        instructor:
+          $ref: '#/components/schemas/User'
+        thumbnail:
+          type: string
+          format: uri
+        price:
+          $ref: '#/components/schemas/Price'
+        duration:
+          type: integer
+          description: Duration in minutes
+        level:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+        tags:
+          type: array
+          items:
+            type: string
+        rating:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+        enrollmentCount:
+          type: integer
+        status:
+          type: string
+          enum: [draft, published, archived]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    
+    CourseDetail:
+      allOf:
+        - $ref: '#/components/schemas/Course'
+        - type: object
+          properties:
+            modules:
+              type: array
+              items:
+                $ref: '#/components/schemas/Module'
+            requirements:
+              type: array
+              items:
+                type: string
+            objectives:
+              type: array
+              items:
+                type: string
+    
+    CourseCreate:
+      type: object
+      required: [title, description, price]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          $ref: '#/components/schemas/Price'
+        duration:
+          type: integer
+        level:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        categoryIds:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+    
+    CourseUpdate:
+      $ref: '#/components/schemas/CourseCreate'
+    
+    CourseList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Course'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    
+    # Module & Lesson
+    Module:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        order:
+          type: integer
+        lessons:
+          type: array
+          items:
+            $ref: '#/components/schemas/Lesson'
+    
+    ModuleCreate:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        order:
+          type: integer
+    
+    Lesson:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        type:
+          type: string
+          enum: [video, article, quiz]
+        duration:
+          type: integer
+        contentUrl:
+          type: string
+          format: uri
+        order:
+          type: integer
+    
+    # Category
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        parentId:
+          type: string
+          format: uuid
+    
+    # Price
+    Price:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: float
+        currency:
+          type: string
+          default: USD
+        type:
+          type: string
+          enum: [free, one-time, subscription]
+        period:
+          type: string
+          enum: [monthly, yearly]
+          description: Only for subscription type
+    
+    # Enrollment
+    Enrollment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        course:
+          $ref: '#/components/schemas/Course'
+        enrolledAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [active, completed, expired]
+        progress:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+    
+    EnrollmentCreate:
+      type: object
+      required: [courseId]
+      properties:
+        courseId:
+          type: string
+          format: uuid
+        paymentMethodId:
+          type: string
+    
+    # Progress
+    Progress:
+      type: object
+      properties:
+        enrollmentId:
+          type: string
+          format: uuid
+        completedLessons:
+          type: array
+          items:
+            type: string
+            format: uuid
+        lastAccessedAt:
+          type: string
+          format: date-time
+        totalProgress:
+          type: number
+          format: float
+        moduleProgress:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+    
+    ProgressUpdate:
+      type: object
+      properties:
+        lessonId:
+          type: string
+          format: uuid
+        completed:
+          type: boolean
+        timeSpent:
+          type: integer
+          description: Time spent in seconds
+    
+    # Payment
+    CheckoutRequest:
+      type: object
+      required: [courseId]
+      properties:
+        courseId:
+          type: string
+          format: uuid
+        couponCode:
+          type: string
+        paymentMethodId:
+          type: string
+    
+    CheckoutSession:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        paymentIntent:
+          type: string
+        amount:
+          type: number
+        clientSecret:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+    
+    PaymentIntent:
+      type: object
+      properties:
+        id:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        status:
+          type: string
+        clientSecret:
+          type: string
+    
+    # Content
+    UploadRequest:
+      type: object
+      required: [fileName, contentType, fileSize]
+      properties:
+        fileName:
+          type: string
+        contentType:
+          type: string
+        fileSize:
+          type: integer
+        courseId:
+          type: string
+          format: uuid
+    
+    UploadResponse:
+      type: object
+      properties:
+        uploadUrl:
+          type: string
+          format: uri
+        contentId:
+          type: string
+          format: uuid
+        expiresAt:
+          type: string
+          format: date-time
+    
+    StreamingUrl:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
+        quality:
+          type: array
+          items:
+            type: string
+            enum: [360p, 720p, 1080p, 4k]
+    
+    # Analytics
+    InstructorAnalytics:
+      type: object
+      properties:
+        period:
+          type: string
+        revenue:
+          type: object
+          properties:
+            total:
+              type: number
+            currency:
+              type: string
+            byPeriod:
+              type: array
+              items:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                  amount:
+                    type: number
+        enrollments:
+          type: object
+          properties:
+            total:
+              type: integer
+            new:
+              type: integer
+            completed:
+              type: integer
+            byPeriod:
+              type: array
+              items:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                  count:
+                    type: integer
+        engagement:
+          type: object
+          properties:
+            averageProgress:
+              type: number
+            averageTimeSpent:
+              type: integer
+            lessonCompletionRate:
+              type: number
+        topCourses:
+          type: array
+          items:
+            type: object
+            properties:
+              courseId:
+                type: string
+              title:
+                type: string
+              enrollments:
+                type: integer
+              revenue:
+                type: number
+    
+    # Common
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+    
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

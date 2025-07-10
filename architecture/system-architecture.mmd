@@ -1,0 +1,130 @@
+%%{init: {'theme':'dark', 'themeVariables': { 'primaryColor': '#2B3137', 'primaryTextColor': '#fff', 'primaryBorderColor': '#7C8085', 'lineColor': '#7C8085', 'secondaryColor': '#373D43', 'tertiaryColor': '#1F2428', 'background': '#1F2428', 'mainBkg': '#2B3137', 'secondBkg': '#373D43', 'tertiaryBkg': '#1F2428' }}}%%
+
+flowchart TB
+    %% Client Layer
+    subgraph "Client Applications"
+        WEB[Web App<br/>React/Next.js]
+        MOBILE[Mobile Apps<br/>React Native]
+        API_CLIENT[API Clients<br/>Third-party]
+    end
+
+    %% API Gateway
+    subgraph "API Gateway Layer"
+        GATEWAY[API Gateway<br/>- Rate Limiting<br/>- Authentication<br/>- Routing]
+        LB[Load Balancer<br/>- SSL Termination<br/>- Health Checks]
+    end
+
+    %% Microservices
+    subgraph "Microservices Layer"
+        subgraph "Core Services"
+            AUTH_SVC[Auth Service<br/>- JWT Management<br/>- OAuth2/SSO<br/>- Permissions]
+            CATALOG_SVC[Catalog Service<br/>- Course CRUD<br/>- Search<br/>- Categories]
+            LEARNING_SVC[Learning Service<br/>- Progress<br/>- Assessments<br/>- Certificates]
+            PAYMENT_SVC[Payment Service<br/>- Stripe Integration<br/>- Subscriptions<br/>- Payouts]
+            TENANT_SVC[Tenant Service<br/>- Multi-tenancy<br/>- Settings<br/>- Limits]
+        end
+        
+        subgraph "Support Services"
+            MEDIA_SVC[Media Service<br/>- Upload<br/>- Processing<br/>- CDN]
+            NOTIF_SVC[Notification Service<br/>- Email<br/>- Push<br/>- In-app]
+            ANALYTICS_SVC[Analytics Service<br/>- Metrics<br/>- Reports<br/>- Insights]
+        end
+    end
+
+    %% Data Layer
+    subgraph "Data Persistence Layer"
+        subgraph "Primary Storage"
+            PG[(PostgreSQL<br/>- Multi-tenant DB<br/>- Row-level Security)]
+            REDIS[(Redis<br/>- Session Cache<br/>- Query Cache)]
+            ES[(Elasticsearch<br/>- Full-text Search<br/>- Analytics)]
+        end
+        
+        subgraph "Object Storage"
+            S3[(AWS S3<br/>- Media Files<br/>- Backups<br/>- Exports)]
+        end
+    end
+
+    %% External Services
+    subgraph "External Services"
+        STRIPE[Stripe<br/>Payment Processing]
+        SMTP[Email Service<br/>SendGrid/SES]
+        CDN[CloudFront CDN<br/>Content Delivery]
+        AUTH0[OAuth Providers<br/>Google/GitHub/SSO]
+    end
+
+    %% Message Queue
+    subgraph "Message Bus"
+        QUEUE[(Message Queue<br/>- RabbitMQ/SQS<br/>- Event Bus)]
+    end
+
+    %% Monitoring
+    subgraph "Monitoring & Observability"
+        MONITOR[Monitoring Stack<br/>- Datadog/Prometheus<br/>- Grafana<br/>- Sentry]
+    end
+
+    %% Connections - Client to Gateway
+    WEB --> LB
+    MOBILE --> LB
+    API_CLIENT --> LB
+    LB --> GATEWAY
+
+    %% Connections - Gateway to Services
+    GATEWAY --> AUTH_SVC
+    GATEWAY --> CATALOG_SVC
+    GATEWAY --> LEARNING_SVC
+    GATEWAY --> PAYMENT_SVC
+    GATEWAY --> TENANT_SVC
+    GATEWAY --> MEDIA_SVC
+    GATEWAY --> NOTIF_SVC
+    GATEWAY --> ANALYTICS_SVC
+
+    %% Connections - Services to Data
+    AUTH_SVC --> PG
+    AUTH_SVC --> REDIS
+    CATALOG_SVC --> PG
+    CATALOG_SVC --> ES
+    LEARNING_SVC --> PG
+    PAYMENT_SVC --> PG
+    TENANT_SVC --> PG
+    TENANT_SVC --> REDIS
+    ANALYTICS_SVC --> PG
+    ANALYTICS_SVC --> ES
+
+    %% Connections - Services to External
+    PAYMENT_SVC --> STRIPE
+    NOTIF_SVC --> SMTP
+    MEDIA_SVC --> S3
+    MEDIA_SVC --> CDN
+    AUTH_SVC --> AUTH0
+
+    %% Connections - Services to Queue
+    CATALOG_SVC --> QUEUE
+    LEARNING_SVC --> QUEUE
+    PAYMENT_SVC --> QUEUE
+    NOTIF_SVC --> QUEUE
+    QUEUE --> ANALYTICS_SVC
+
+    %% Connections - Monitoring
+    AUTH_SVC -.-> MONITOR
+    CATALOG_SVC -.-> MONITOR
+    LEARNING_SVC -.-> MONITOR
+    PAYMENT_SVC -.-> MONITOR
+
+    %% Styling
+    classDef client fill:#4A90E2,stroke:#3A7BC8,color:#fff
+    classDef gateway fill:#F39C12,stroke:#E67E22,color:#fff
+    classDef service fill:#27AE60,stroke:#229954,color:#fff
+    classDef support fill:#9B59B6,stroke:#8E44AD,color:#fff
+    classDef data fill:#E74C3C,stroke:#C0392B,color:#fff
+    classDef external fill:#34495E,stroke:#2C3E50,color:#fff
+    classDef queue fill:#16A085,stroke:#138871,color:#fff
+    classDef monitor fill:#7F8C8D,stroke:#707B7C,color:#fff
+
+    class WEB,MOBILE,API_CLIENT client
+    class GATEWAY,LB gateway
+    class AUTH_SVC,CATALOG_SVC,LEARNING_SVC,PAYMENT_SVC,TENANT_SVC service
+    class MEDIA_SVC,NOTIF_SVC,ANALYTICS_SVC support
+    class PG,REDIS,ES,S3 data
+    class STRIPE,SMTP,CDN,AUTH0 external
+    class QUEUE queue
+    class MONITOR monitor

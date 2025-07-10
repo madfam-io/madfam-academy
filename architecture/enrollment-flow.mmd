@@ -1,0 +1,114 @@
+%%{init: {'theme':'dark', 'themeVariables': { 'primaryColor': '#2B3137', 'primaryTextColor': '#fff', 'primaryBorderColor': '#7C8085', 'lineColor': '#7C8085' }}}%%
+
+sequenceDiagram
+    participant U as User
+    participant W as Web App
+    participant G as API Gateway
+    participant A as Auth Service
+    participant C as Catalog Service
+    participant P as Payment Service
+    participant L as Learning Service
+    participant S as Stripe
+    participant Q as Message Queue
+    participant N as Notification Service
+    participant An as Analytics Service
+
+    %% Browse Course
+    U->>W: Browse course catalog
+    W->>G: GET /api/v1/courses
+    G->>A: Verify JWT (optional)
+    G->>C: Get courses list
+    C-->>G: Course list
+    G-->>W: Course data
+    W-->>U: Display courses
+
+    %% View Course Details
+    U->>W: Select course
+    W->>G: GET /api/v1/courses/{id}
+    G->>C: Get course details
+    C-->>G: Course details + pricing
+    G-->>W: Course data
+    W-->>U: Display course page
+
+    %% Initiate Enrollment
+    U->>W: Click "Enroll Now"
+    W->>G: POST /api/v1/enrollments
+    G->>A: Verify JWT (required)
+    A-->>G: User authenticated
+    
+    %% Check existing enrollment
+    G->>L: Check existing enrollment
+    L-->>G: No existing enrollment
+
+    %% Payment flow for paid courses
+    alt Course is Paid
+        G->>P: Create payment intent
+        P->>S: Create Stripe session
+        S-->>P: Session + client secret
+        P-->>G: Payment session
+        G-->>W: Payment required + session
+        W-->>U: Redirect to payment
+        
+        U->>W: Complete payment
+        W->>S: Process payment
+        S->>P: Webhook: payment.success
+        P->>Q: Publish PaymentCompleted event
+        
+        Q->>L: PaymentCompleted event
+        L->>L: Create enrollment
+        L->>Q: Publish EnrollmentCreated event
+    else Course is Free
+        G->>L: Create enrollment directly
+        L->>Q: Publish EnrollmentCreated event
+        L-->>G: Enrollment created
+        G-->>W: Success response
+    end
+
+    %% Post-enrollment actions
+    Q->>N: EnrollmentCreated event
+    N->>N: Send welcome email
+    N->>U: Email notification
+
+    Q->>An: EnrollmentCreated event
+    An->>An: Update analytics
+    An->>An: Update course metrics
+
+    Q->>C: EnrollmentCreated event
+    C->>C: Increment enrollment count
+
+    %% Access course content
+    U->>W: Access course
+    W->>G: GET /api/v1/enrollments/{id}
+    G->>A: Verify JWT
+    G->>L: Get enrollment + progress
+    L-->>G: Enrollment data
+    G-->>W: Enrollment + access granted
+    W-->>U: Display course content
+
+    %% Progress tracking
+    loop Learning Progress
+        U->>W: Complete lesson
+        W->>G: PATCH /api/v1/progress
+        G->>L: Update progress
+        L->>Q: Publish ProgressUpdated event
+        L-->>G: Progress updated
+        G-->>W: Success
+        
+        Q->>An: ProgressUpdated event
+        An->>An: Track engagement
+    end
+
+    %% Certificate generation
+    alt Course Completed
+        L->>L: Check completion (100%)
+        L->>Q: Publish CourseCompleted event
+        Q->>L: Generate certificate
+        Q->>N: Send completion email
+        N->>U: Certificate email
+    end
+
+    %% Notes
+    Note over U,An: Multi-tenant context is maintained throughout
+    Note over G: All requests include tenant ID
+    Note over L,C,P: Services use tenant ID for data isolation
+    Note over Q: Events include tenant context
