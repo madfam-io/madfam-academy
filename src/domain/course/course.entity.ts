@@ -58,6 +58,22 @@ export class Module extends Entity<{
   order: number;
   lessons: Lesson[];
 }> {
+  get id(): string {
+    return this.props.id;
+  }
+
+  get order(): number {
+    return this.props.order;
+  }
+
+  set order(value: number) {
+    this.props.order = value;
+  }
+
+  get lessons(): Lesson[] {
+    return this.props.lessons;
+  }
+
   addLesson(lesson: Lesson): void {
     this.props.lessons.push(lesson);
     this.props.lessons.sort((a, b) => a.order - b.order);
@@ -96,6 +112,22 @@ export class Lesson extends Entity<{
   order: number;
   isPreview: boolean;
 }> {
+  get id(): string {
+    return this.props.id;
+  }
+
+  get order(): number {
+    return this.props.order;
+  }
+
+  set order(value: number) {
+    this.props.order = value;
+  }
+
+  get duration(): number | undefined {
+    return this.props.duration;
+  }
+
   markAsPreview(): void {
     this.props.isPreview = true;
   }
@@ -154,12 +186,10 @@ export class Course extends AggregateRoot<{
       enrollmentCount: 0,
     });
 
-    course.addDomainEvent(new CourseCreatedEvent({
-      courseId: courseId.value,
-      tenantId: props.tenantId,
-      instructorId: props.instructorId,
-      title: props.title,
-    }));
+    course.addDomainEvent(new CourseCreatedEvent(
+      courseId.value,
+      props.title
+    ));
 
     return course;
   }
@@ -181,12 +211,10 @@ export class Course extends AggregateRoot<{
     this.props.status = 'published';
     this.props.publishedAt = new Date();
 
-    this.addDomainEvent(new CoursePublishedEvent({
-      courseId: this.props.id.value,
-      tenantId: this.props.tenantId,
-      instructorId: this.props.instructorId,
-      publishedAt: this.props.publishedAt,
-    }));
+    this.addDomainEvent(new CoursePublishedEvent(
+      this.props.id.value,
+      this.props.publishedAt!
+    ));
   }
 
   archive(): void {
@@ -211,11 +239,10 @@ export class Course extends AggregateRoot<{
     if (props.price) this.props.price = props.price;
     if (props.metadata) this.props.metadata = props.metadata;
 
-    this.addDomainEvent(new CourseUpdatedEvent({
-      courseId: this.props.id.value,
-      tenantId: this.props.tenantId,
-      updatedFields: Object.keys(props),
-    }));
+    this.addDomainEvent(new CourseUpdatedEvent(
+      this.props.id.value,
+      props
+    ));
   }
 
   addModule(module: Module): void {

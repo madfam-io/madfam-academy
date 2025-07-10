@@ -57,10 +57,10 @@ export interface AccessContext {
 
 export class ProgressService {
   constructor(
-    private readonly enrollmentRepository: IEnrollmentRepository,
-    private readonly courseRepository: ICourseRepository,
+    private readonly enrollmentRepository: EnrollmentRepository,
+    private readonly courseRepository: CourseRepository,
     private readonly certificateService: CertificateService,
-    private readonly eventBus: IEventBus
+    private readonly eventBus: EventBus
   ) {}
 
   async enrollInCourse(dto: EnrollInCourseDto): Promise<Enrollment> {

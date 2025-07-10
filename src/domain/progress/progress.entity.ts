@@ -238,14 +238,13 @@ export class Enrollment extends AggregateRoot<{
     progress.complete(score);
 
     if (!wasComplete) {
-      this.addDomainEvent(new LessonCompletedEvent({
-        enrollmentId: this.props.id.value,
-        studentId: this.props.studentId,
-        courseId: this.props.courseId,
+      this.addDomainEvent(new LessonCompletedEvent(
+        this.props.id.value,
         lessonId,
-        completedAt: progress.props.completedAt!,
-        score,
-      }));
+        this.props.studentId,
+        this.props.courseId,
+        progress.props.completedAt!
+      ));
 
       this.recalculateProgress();
     }
@@ -258,13 +257,13 @@ export class Enrollment extends AggregateRoot<{
     this.props.moduleProgress.set(moduleId, moduleProgress);
 
     if (moduleProgress.isComplete) {
-      this.addDomainEvent(new ModuleCompletedEvent({
-        enrollmentId: this.props.id.value,
-        studentId: this.props.studentId,
-        courseId: this.props.courseId,
+      this.addDomainEvent(new ModuleCompletedEvent(
+        this.props.id.value,
         moduleId,
-        completedAt: new Date(),
-      }));
+        this.props.studentId,
+        this.props.courseId,
+        new Date()
+      ));
     }
   }
 
@@ -281,14 +280,13 @@ export class Enrollment extends AggregateRoot<{
       this.props.certificateId = certificateId;
     }
 
-    this.addDomainEvent(new CourseCompletedEvent({
-      enrollmentId: this.props.id.value,
-      studentId: this.props.studentId,
-      courseId: this.props.courseId,
-      completedAt: this.props.completedAt,
-      totalTimeSpent: this.props.totalTimeSpent,
-      certificateId,
-    }));
+    this.addDomainEvent(new CourseCompletedEvent(
+      this.props.id.value,
+      this.props.studentId,
+      this.props.courseId,
+      this.props.completedAt!,
+      certificateId !== undefined
+    ));
   }
 
   suspend(reason?: string): void {

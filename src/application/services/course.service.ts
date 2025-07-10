@@ -1,6 +1,6 @@
-import { ICourseRepository, CourseSearchCriteria } from '@/domain/course/course.repository';
+import { CourseRepository, CourseSearchCriteria } from '@/domain/course/course.repository';
 import { Course, CourseId, Price, CourseMetadata, Module, Lesson } from '@/domain/course/course.entity';
-import { IEventBus } from '@/shared/domain/event-bus';
+import { EventBus } from '@/shared/domain/event-bus';
 import { PersonaType } from '@/infrastructure/auth/persona-permissions';
 
 export interface CreateCourseDto {
@@ -65,8 +65,8 @@ export interface CourseAccessContext {
 
 export class CourseService {
   constructor(
-    private readonly courseRepository: ICourseRepository,
-    private readonly eventBus: IEventBus
+    private readonly courseRepository: CourseRepository,
+    private readonly eventBus: EventBus
   ) {}
 
   async createCourse(dto: CreateCourseDto): Promise<Course> {

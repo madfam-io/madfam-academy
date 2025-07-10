@@ -156,13 +156,10 @@ export class Certificate extends AggregateRoot<{
       expiresAt: props.expiresAt,
     });
 
-    certificate.addDomainEvent(new CertificateIssuedEvent({
-      certificateId: certificateId.value,
-      certificateNumber: certificateNumber.value,
-      studentId: props.studentId,
-      courseId: props.courseId,
-      tenantId: props.tenantId,
-    }));
+    certificate.addDomainEvent(new CertificateGeneratedEvent(
+      certificateId.value,
+      certificateNumber.value
+    ));
 
     return certificate;
   }
