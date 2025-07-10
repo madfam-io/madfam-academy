@@ -51,6 +51,10 @@ export class InMemoryMetricsCollector implements MetricsCollector {
     });
   }
 
+  incrementCounter(metricName: string, tags?: Record<string, string>): void {
+    this.increment(metricName, tags);
+  }
+
   getMetrics(): Metric[] {
     return [...this.metrics];
   }

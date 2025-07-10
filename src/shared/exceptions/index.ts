@@ -39,3 +39,17 @@ export class TenantNotFoundError extends NotFoundError {
     this.name = 'TenantNotFoundError';
   }
 }
+
+export class UnauthorizedException extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UnauthorizedException';
+  }
+}
+
+export class NotFoundException extends NotFoundError {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotFoundException';
+  }
+}

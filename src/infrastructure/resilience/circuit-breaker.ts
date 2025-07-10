@@ -47,4 +47,8 @@ export class CircuitBreaker {
       this.nextAttempt = Date.now() + this.options.resetTimeout;
     }
   }
+
+  getStatus(): { state: CircuitBreakerState; failures: number } {
+    return { state: this.state, failures: this.failures };
+  }
 }

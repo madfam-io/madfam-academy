@@ -9,6 +9,7 @@ export interface CourseRepository {
   save(course: Course): Promise<void>;
   delete(id: CourseId, tenantId: string): Promise<void>;
   search(criteria: CourseSearchCriteria, tenantId: string): Promise<CourseSearchResult>;
+  incrementEnrollmentCount(courseId: CourseId): Promise<void>;
 }
 
 export interface CourseSearchCriteria {

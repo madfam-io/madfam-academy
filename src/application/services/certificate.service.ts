@@ -106,8 +106,7 @@ export class CertificateService {
   ): Promise<CertificateVerificationResult> {
     try {
       const certificate = await this.certificateRepository.findByVerificationCode(
-        verificationCode,
-        tenantId
+        verificationCode
       );
 
       if (!certificate) {
@@ -170,7 +169,7 @@ export class CertificateService {
 
   private async generateCertificatePDF(
     certificate: Certificate,
-    template: CertificateTemplate
+    template: any
   ): Promise<Buffer> {
     const pdfDoc = await PDFDocument.create();
     
@@ -181,8 +180,8 @@ export class CertificateService {
     pdfDoc.setCreator('Educational Marketplace Platform');
 
     // Add page with appropriate size
-    const pageWidth = template.props.design.layout === 'landscape' ? 792 : 612;
-    const pageHeight = template.props.design.layout === 'landscape' ? 612 : 792;
+    const pageWidth = 612; // Standard portrait
+    const pageHeight = 792;
     const page = pdfDoc.addPage([pageWidth, pageHeight]);
 
     // Load fonts
@@ -264,10 +263,10 @@ export class CertificateService {
       studentName: metadata.studentName,
       courseName: metadata.courseName,
       instructorName: metadata.instructorName,
-      completionDate: metadata.formattedCompletionDate,
+      completionDate: metadata.completionDate.toLocaleDateString(),
       certificateNumber: certificate.props.certificateNumber.value,
       score: metadata.score?.toString() || '',
-      grade: metadata.displayGrade,
+      grade: metadata.grade || 'Pass',
       courseDuration: `${metadata.courseDuration} hours`,
       issuedDate: certificate.props.issuedAt.toLocaleDateString(),
     };

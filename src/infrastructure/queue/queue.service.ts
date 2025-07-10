@@ -39,4 +39,8 @@ export class MemoryQueueService implements QueueService {
   async clean(queueName: string, grace?: number): Promise<void> {
     this.queues.set(queueName, []);
   }
+
+  async getHealth(): Promise<{ status: string }> {
+    return { status: 'healthy' };
+  }
 }

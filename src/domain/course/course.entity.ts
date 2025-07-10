@@ -128,6 +128,10 @@ export class Lesson extends Entity<{
     return this.props.duration;
   }
 
+  get isPreview(): boolean {
+    return this.props.isPreview;
+  }
+
   markAsPreview(): void {
     this.props.isPreview = true;
   }
