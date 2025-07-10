@@ -3,16 +3,17 @@
 import { useEffect } from 'react';
 import { useABTest } from '@/components/providers/ab-test-provider';
 
-interface ConversionEvent {
-  event: string;
-  timestamp: string;
-  userId?: string;
-  sessionId: string;
-  page: string;
-  variant: string;
-  value?: number;
-  properties?: Record<string, any>;
-}
+// Remove unused interface for now
+// interface ConversionEvent {
+//   event: string;
+//   timestamp: string;
+//   userId?: string;
+//   sessionId: string;
+//   page: string;
+//   variant: string;
+//   value?: number;
+//   properties?: Record<string, unknown>;
+// }
 
 export function ConversionTracker() {
   const { currentVariant, trackEvent } = useABTest();
