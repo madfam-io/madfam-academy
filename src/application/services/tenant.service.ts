@@ -63,4 +63,18 @@ export class DefaultTenantService implements TenantService {
   async delete(id: string): Promise<void> {
     this.tenants.delete(id);
   }
+
+  async findBySubdomain(subdomain: string): Promise<Tenant | null> {
+    return this.findByDomain(subdomain);
+  }
+
+  async hasFeature(tenantId: string, feature: string): Promise<boolean> {
+    const tenant = await this.findById(tenantId);
+    return tenant?.settings?.features?.[feature] || false;
+  }
+
+  async getLimit(tenantId: string, limitType: string): Promise<number> {
+    const tenant = await this.findById(tenantId);
+    return tenant?.settings?.limits?.[limitType] || 0;
+  }
 }

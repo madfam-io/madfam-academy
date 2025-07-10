@@ -67,8 +67,7 @@ export class ProgressService {
     // Check if already enrolled
     const existingEnrollment = await this.enrollmentRepository.findByStudentAndCourse(
       dto.studentId,
-      dto.courseId,
-      dto.tenantId
+      dto.courseId
     );
 
     if (existingEnrollment && existingEnrollment.isActive) {
