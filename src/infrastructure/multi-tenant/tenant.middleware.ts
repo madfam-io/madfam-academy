@@ -154,7 +154,7 @@ export class TenantMiddleware {
         return next(new UnauthorizedException('Tenant context required'));
       }
 
-      const hasFeature = this.tenantService.hasFeature(req.tenant, feature);
+      const hasFeature = this.tenantService.hasFeature(req.tenant.id, feature);
       if (!hasFeature) {
         return next(new UnauthorizedException(`Feature '${feature}' not available for tenant`));
       }
@@ -172,7 +172,7 @@ export class TenantMiddleware {
         return next(new UnauthorizedException('Tenant context required'));
       }
 
-      const limit = await this.tenantService.getLimit(req.tenant, resource);
+      const limit = await this.tenantService.getLimit(req.tenant.id, resource);
       if (limit !== null && currentCount >= limit) {
         return next(new UnauthorizedException(`Limit reached for ${resource}`));
       }
